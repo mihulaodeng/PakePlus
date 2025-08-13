@@ -1,32 +1,1000 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务进度管理系统 - 优化版</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1400px; /* 增加最大宽度 */
+            min-height: 90vh; /* 改为最小高度，内容多时可扩展 */
+            margin: 0 auto; /* 居中显示 */
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            flex-direction: column;
+        }
+        
+        /* 顶部标题栏 */
+        .app-header {
+            background: linear-gradient(160deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 20px 30px; /* 增加内边距 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .app-header h1 {
+            font-size: 1.6rem; /* 增大标题 */
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        /* 左侧面板样式 */
+        .left-panel {
+            width: 30%; /* 调整宽度比例 */
+            min-width: 320px; /* 增加最小宽度 */
+            background: linear-gradient(160deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 25px; /* 增加内边距 */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .add-task {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px; /* 增加内边距 */
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .add-task h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .task-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .task-input input {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 15px; /* 增加内边距 */
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 15px; /* 增大字体 */
+        }
+        
+        .task-input button {
+            padding: 12px 20px; /* 增加内边距 */
+            border: none;
+            border-radius: 8px;
+            background: #ff6b6b;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .task-input button:hover {
+            background: #ff5252;
+            transform: translateY(-2px); /* 增加悬停效果 */
+        }
+        
+        .tasks-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        
+        .tasks-list h2 {
+            font-size: 1.2rem;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .task-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px; /* 增加内边距 */
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .task-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px); /* 增加悬停动画 */
+        }
+        
+        .task-item.active {
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        .task-item h3 {
+            font-size: 17px; /* 增大字体 */
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .task-item .delete-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 0 5px;
+        }
+        
+        .task-item .delete-btn:hover {
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .task-item p {
+            font-size: 14px; /* 增大字体 */
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* 右侧面板样式 */
+        .right-panel {
+            flex: 1;
+            padding: 30px; /* 增加内边距 */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .task-detail {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .task-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 15px;
+        }
+        
+        .task-title {
+            font-size: 1.8rem; /* 增大标题 */
+            color: #2d3436;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .task-stats {
+            font-size: 1.1rem; /* 增大字体 */
+            color: #666;
+        }
+        
+        .progress-container {
+            margin: 20px 0 25px;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1.05rem; /* 增大字体 */
+        }
+        
+        .progress-bar {
+            height: 16px; /* 增加高度 */
+            background: #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00c9ff 0%, #92fe9d 100%);
+            border-radius: 8px;
+            transition: width 0.5s ease;
+        }
+        
+        .subtasks {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        
+        .subtasks h2 {
+            font-size: 1.3rem; /* 增大字体 */
+            margin-bottom: 20px;
+            color: #2d3436;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .subtask-list {
+            margin-bottom: 25px;
+        }
+        
+        .subtask-item {
+            display: flex;
+            align-items: center;
+            padding: 15px; /* 增加内边距 */
+            background: #f8f9fa;
+            border-radius: 10px; /* 增大圆角 */
+            margin-bottom: 12px;
+            transition: all 0.3s;
+            border: 1px solid #e9ecef;
+            gap: 12px;
+        }
+        
+        .subtask-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* 增强阴影 */
+        }
+        
+        .subtask-item.completed {
+            background: #e8f5e9;
+        }
+        
+        .subtask-item input[type="checkbox"] {
+            flex-shrink: 0;
+            width: 20px; /* 增大复选框 */
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .subtask-text {
+            flex: 1;
+            font-size: 16px; /* 增大字体 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .subtask-item.completed .subtask-text {
+            text-decoration: line-through;
+            color: #78909c;
+        }
+        
+        .subtask-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .subtask-btn {
+            background: none;
+            border: none;
+            color: #78909c;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 30px; /* 增大按钮 */
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1rem;
+        }
+        
+        .subtask-btn:hover {
+            background: #f0f0f0;
+            color: #2d3436;
+        }
+        
+        .add-subtask {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #eee; /* 增加分隔线 */
+        }
+        
+        .add-subtask-tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 5px;
+        }
+        
+        .add-subtask-tab {
+            padding: 10px 15px; /* 增加内边距 */
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-size: 1rem; /* 增大字体 */
+        }
+        
+        .add-subtask-tab.active {
+            border-bottom: 3px solid #6a11cb;
+            color: #6a11cb;
+            font-weight: bold;
+        }
+        
+        .add-subtask input, .add-subtask textarea {
+            padding: 14px; /* 增加内边距 */
+            border: 2px solid #e0e0e0;
+            border-radius: 10px; /* 增大圆角 */
+            font-size: 16px; /* 增大字体 */
+            width: 100%;
+            transition: border-color 0.3s;
+        }
+        
+        .add-subtask input:focus, .add-subtask textarea:focus {
+            outline: none;
+            border-color: #6a11cb; /* 增加焦点样式 */
+        }
+        
+        .add-subtask textarea {
+            height: 120px; /* 增加高度 */
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .add-subtask button {
+            padding: 12px 20px; /* 增加内边距 */
+            border: none;
+            border-radius: 10px; /* 增大圆角 */
+            background: #6a11cb;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+        
+        .add-subtask button:hover {
+            background: #2575fc;
+            transform: translateY(-2px); /* 增加悬停效果 */
+        }
+        
+        .batch-hint {
+            font-size: 0.9rem;
+            color: #78909c;
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* 空状态样式 */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: #78909c;
+            padding: 30px; /* 增加内边距 */
+        }
+        
+        .empty-state i {
+            font-size: 70px; /* 增大图标 */
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem; /* 增大字体 */
+            margin-bottom: 15px;
+            color: #546e7a;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem; /* 增大字体 */
+            max-width: 500px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                min-height: 95vh;
+            }
+            
+            .left-panel {
+                width: 100%;
+                min-width: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 100;
+                transform: translateX(-100%);
+            }
+            
+            .left-panel.active {
+                transform: translateX(0);
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .task-input {
+                flex-direction: column;
+            }
+            
+            .task-input input, 
+            .task-input button {
+                width: 100%;
+            }
+            
+            .add-subtask-tabs {
+                flex-wrap: wrap;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            body {
+                padding: 10px;
+            }
+            
+            .app-header {
+                padding: 15px 20px;
+            }
+            
+            .app-header h1 {
+                font-size: 1.4rem;
+            }
+            
+            .right-panel {
+                padding: 20px;
+            }
+            
+            .task-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .task-title {
+                font-size: 1.5rem;
+            }
+            
+            .subtask-actions {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* 右侧面板滚动条 */
+        .subtasks::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .subtasks::-webkit-scrollbar-thumb {
+            background: #ccc;
+        }
+        
+        .subtasks::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+        
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+        
+        /* 通知样式 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px; /* 增加内边距 */
+            background: white;
+            border-radius: 10px; /* 增大圆角 */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+            max-width: 90%;
+            font-size: 1rem; /* 增大字体 */
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid #4caf50;
+        }
+        
+        .notification.info {
+            border-left: 4px solid #2196f3;
+        }
+        
+        /* 覆盖层 */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 90;
+        }
+        
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="notification" :class="[notification.type, { show: notification.show }]">
+            <i :class="notification.icon"></i>
+            <span>{{ notification.message }}</span>
+        </div>
+        
+        <div class="overlay" :class="{ active: leftPanelActive }" @click="leftPanelActive = false"></div>
+        
+        <div class="container">
+            <!-- 顶部标题栏 -->
+            <div class="app-header">
+                <button class="mobile-menu-btn" @click="toggleLeftPanel">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1><i class="fas fa-tasks"></i> 任务进度管理系统</h1>
+                <div></div> <!-- 占位元素 -->
+            </div>
+            
+            <div class="main-content">
+                <!-- 左侧面板 -->
+                <div class="left-panel" :class="{ active: leftPanelActive }">
+                    <div class="add-task">
+                        <h2><i class="fas fa-plus-circle"></i> 添加新任务</h2>
+                        <div class="task-input">
+                            <input type="text" v-model="newTaskTitle" placeholder="输入任务名称..." @keyup.enter="addTask">
+                            <button @click="addTask"><i class="fas fa-plus"></i> 添加</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tasks-list">
+                        <h2><i class="fas fa-list"></i> 任务列表 ({{ tasks.length }})</h2>
+                        <div id="tasksContainer">
+                            <div 
+                                v-for="task in tasks" 
+                                :key="task.id"
+                                class="task-item fade-in" 
+                                :class="{ active: currentTaskId === task.id }"
+                                @click="selectTask(task.id); leftPanelActive = false;"
+                            >
+                                <h3>
+                                    {{ task.title }}
+                                    <button class="delete-btn" @click.stop="deleteTask(task.id)">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </h3>
+                                <p>
+                                    <i class="fas fa-check-circle"></i> 
+                                    {{ completedSubtasks(task) }}/{{ task.subtasks.length }} 完成
+                                </p>
+                            </div>
+                            
+                            <div class="empty-state" v-if="tasks.length === 0">
+                                <i class="fas fa-inbox"></i>
+                                <h3>暂无任务</h3>
+                                <p>请添加新任务以开始</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧面板 -->
+                <div class="right-panel" v-if="currentTask">
+                    <div class="task-detail">
+                        <div class="task-header">
+                            <h2 class="task-title">
+                                <i class="fas fa-bullseye"></i> 
+                                {{ currentTask.title }}
+                            </h2>
+                            <div class="task-stats">
+                                <span>{{ currentTask.subtasks.length }} 个子任务</span>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-container">
+                            <div class="progress-header">
+                                <span>任务进度</span>
+                                <span>{{ progressPercentage }}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="subtasks">
+                            <h2><i class="fas fa-list-check"></i> 子任务</h2>
+                            <div id="subtasksContainer">
+                                <!-- 空状态 -->
+                                <div class="empty-state" v-if="currentTask.subtasks.length === 0">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <h3>暂无子任务</h3>
+                                    <p>请添加子任务以开始跟踪您的进度</p>
+                                </div>
+                                
+                                <div class="subtask-list" v-else>
+                                    <div 
+                                        v-for="(subtask, index) in currentTask.subtasks" 
+                                        :key="subtask.id"
+                                        class="subtask-item fade-in" 
+                                        :class="{ completed: subtask.completed }"
+                                    >
+                                        <input type="checkbox" v-model="subtask.completed" @change="saveTasks">
+                                        <span class="subtask-text">{{ subtask.text }}</span>
+                                        <div class="subtask-actions">
+                                            <button class="subtask-btn" @click="moveSubtask(index, index - 1)" :disabled="index === 0">
+                                                <i class="fas fa-arrow-up"></i>
+                                            </button>
+                                            <button class="subtask-btn" @click="moveSubtask(index, index + 1)" :disabled="index === currentTask.subtasks.length - 1">
+                                                <i class="fas fa-arrow-down"></i>
+                                            </button>
+                                            <button class="subtask-btn" @click="deleteSubtask(subtask.id)">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="add-subtask">
+                            <div class="add-subtask-tabs">
+                                <div 
+                                    class="add-subtask-tab" 
+                                    :class="{ active: subtaskMode === 'single' }"
+                                    @click="subtaskMode = 'single'"
+                                >
+                                    添加单个子任务
+                                </div>
+                                <div 
+                                    class="add-subtask-tab" 
+                                    :class="{ active: subtaskMode === 'batch' }"
+                                    @click="subtaskMode = 'batch'"
+                                >
+                                    批量添加子任务
+                                </div>
+                            </div>
+                            
+                            <input 
+                                v-if="subtaskMode === 'single'"
+                                type="text" 
+                                v-model="newSubtaskText" 
+                                placeholder="输入新的子任务..." 
+                                @keyup.enter="addSubtask"
+                            >
+                            
+                            <div v-else>
+                                <textarea 
+                                    v-model="batchSubtaskText" 
+                                    placeholder="每行输入一个子任务，例如：&#10;设计UI界面&#10;编写登录功能&#10;测试用户流程"
+                                ></textarea>
+                                <div class="batch-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    每行输入一个子任务，按行分割
+                                </div>
+                            </div>
+                            
+                            <button @click="addSubtask">
+                                <i class="fas fa-plus"></i> 
+                                {{ subtaskMode === 'single' ? '添加子任务' : '批量添加' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="right-panel" v-else>
+                    <div class="empty-state">
+                        <i class="fas fa-hand-pointer"></i>
+                        <h3>选择或创建任务</h3>
+                        <p>请在左侧选择一个任务或创建新任务</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
-            </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
-            </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
-            </div>
-        </main>
-    </body>
+    <script>
+        // 生成唯一ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        }
+        
+        new Vue({
+            el: '#app',
+            data: {
+                tasks: [],
+                currentTaskId: null,
+                newTaskTitle: '',
+                newSubtaskText: '',
+                batchSubtaskText: '',
+                subtaskMode: 'single',
+                notification: {
+                    show: false,
+                    message: '',
+                    type: 'info',
+                    icon: 'fas fa-info-circle'
+                },
+                leftPanelActive: false
+            },
+            computed: {
+                currentTask() {
+                    return this.tasks.find(task => task.id === this.currentTaskId);
+                },
+                progressPercentage() {
+                    if (!this.currentTask || this.currentTask.subtasks.length === 0) return 0;
+                    
+                    const completed = this.currentTask.subtasks.filter(st => st.completed).length;
+                    return Math.round((completed / this.currentTask.subtasks.length) * 100);
+                }
+            },
+            methods: {
+                // 初始化任务
+                initTasks() {
+                    const savedTasks = localStorage.getItem('tasks');
+                    if (savedTasks) {
+                        this.tasks = JSON.parse(savedTasks);
+                        if (this.tasks.length > 0) {
+                            this.currentTaskId = this.tasks[0].id;
+                        }
+                    }
+                },
+                
+                // 保存任务到本地存储
+                saveTasks() {
+                    localStorage.setItem('tasks', JSON.stringify(this.tasks));
+                },
+                
+                // 添加新任务
+                addTask() {
+                    if (this.newTaskTitle.trim() === '') return;
+                    
+                    const newTask = {
+                        id: generateId(),
+                        title: this.newTaskTitle.trim(),
+                        subtasks: []
+                    };
+                    
+                    this.tasks.push(newTask);
+                    this.newTaskTitle = '';
+                    this.selectTask(newTask.id);
+                    this.saveTasks();
+                    
+                    this.showNotification('任务添加成功', 'success', 'fas fa-check-circle');
+                },
+                
+                // 删除任务
+                deleteTask(taskId) {
+                    const taskIndex = this.tasks.findIndex(t => t.id === taskId);
+                    if (taskIndex !== -1) {
+                        this.tasks.splice(taskIndex, 1);
+                        this.saveTasks();
+                        
+                        if (this.tasks.length > 0) {
+                            this.currentTaskId = this.tasks[0].id;
+                        } else {
+                            this.currentTaskId = null;
+                        }
+                        
+                        this.showNotification('任务已删除', 'info', 'fas fa-trash-alt');
+                    }
+                },
+                
+                // 选择任务
+                selectTask(taskId) {
+                    this.currentTaskId = taskId;
+                },
+                
+                // 计算完成子任务数量
+                completedSubtasks(task) {
+                    return task.subtasks.filter(st => st.completed).length;
+                },
+                
+                // 添加子任务
+                addSubtask() {
+                    if (!this.currentTask) return;
+                    
+                    if (this.subtaskMode === 'single') {
+                        if (this.newSubtaskText.trim() === '') return;
+                        
+                        const newSubtask = {
+                            id: generateId(),
+                            text: this.newSubtaskText.trim(),
+                            completed: false
+                        };
+                        
+                        this.currentTask.subtasks.push(newSubtask);
+                        this.newSubtaskText = '';
+                        this.saveTasks();
+                        
+                        this.showNotification('子任务添加成功', 'success', 'fas fa-check-circle');
+                    } else {
+                        if (this.batchSubtaskText.trim() === '') return;
+                        
+                        const subtaskLines = this.batchSubtaskText.trim().split('\n');
+                        const newSubtasks = subtaskLines
+                            .filter(line => line.trim() !== '')
+                            .map(line => ({
+                                id: generateId(),
+                                text: line.trim(),
+                                completed: false
+                            }));
+                        
+                        if (newSubtasks.length > 0) {
+                            this.currentTask.subtasks.push(...newSubtasks);
+                            this.batchSubtaskText = '';
+                            this.saveTasks();
+                            
+                            this.showNotification(`成功添加 ${newSubtasks.length} 个子任务`, 'success', 'fas fa-check-circle');
+                        }
+                    }
+                },
+                
+                // 删除子任务
+                deleteSubtask(subtaskId) {
+                    if (!this.currentTask) return;
+                    
+                    const subtaskIndex = this.currentTask.subtasks.findIndex(st => st.id === subtaskId);
+                    if (subtaskIndex !== -1) {
+                        this.currentTask.subtasks.splice(subtaskIndex, 1);
+                        this.saveTasks();
+                        
+                        this.showNotification('子任务已删除', 'info', 'fas fa-trash-alt');
+                    }
+                },
+                
+                // 移动子任务位置
+                moveSubtask(fromIndex, toIndex) {
+                    if (!this.currentTask) return;
+                    
+                    const subtasks = this.currentTask.subtasks;
+                    if (toIndex < 0 || toIndex >= subtasks.length) return;
+                    
+                    // 交换位置
+                    const temp = subtasks[fromIndex];
+                    subtasks[fromIndex] = subtasks[toIndex];
+                    subtasks[toIndex] = temp;
+                    
+                    this.saveTasks();
+                },
+                
+                // 显示通知
+                showNotification(message, type, icon) {
+                    this.notification.message = message;
+                    this.notification.type = type;
+                    this.notification.icon = icon;
+                    this.notification.show = true;
+                    
+                    setTimeout(() => {
+                        this.notification.show = false;
+                    }, 3000);
+                },
+                
+                // 切换左侧面板（移动端）
+                toggleLeftPanel() {
+                    this.leftPanelActive = !this.leftPanelActive;
+                }
+            },
+            mounted() {
+                this.initTasks();
+                
+                // 监听窗口大小变化
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 900) {
+                        this.leftPanelActive = false;
+                    }
+                });
+            },
+            watch: {
+                tasks: {
+                    handler() {
+                        this.saveTasks();
+                    },
+                    deep: true
+                }
+            }
+        });
+    </script>
+</body>
 </html>
